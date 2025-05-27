@@ -1,0 +1,10 @@
+streamlit
+pandas
+python-dotenv
+azure-storage-blob
+azure-core
+azure-search-documents
+azure-identity
+langchain
+langchain-community
+langchain-openai
