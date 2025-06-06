@@ -4,6 +4,7 @@ Purpose: Monitor Azure Blob Storage for CSV file changes (add/update/delete) and
 """
 
 import os
+import stat
 import io
 import json
 import base64
@@ -19,17 +20,20 @@ from azure.search.documents.indexes.models import (
     SearchFieldDataType,
     SimpleField
 )
+from langchain.vectorstores import Chroma
+
 
 def compute_blob_hash(blob_data: bytes) -> str:
     """Compute SHA256 hash of blob content."""
     return hashlib.sha256(blob_data).hexdigest()
 
-def reindex_if_blob_changed():
+def reindex_if_blob_changed(vector_db_type="azure", documents=None, embeddings=None):
     """
-    Reindexes Azure Cognitive Search index if any CSV blob in the container was added, updated, or deleted.
-    Uses SHA256 content hash to detect changes.
-    Returns True if index was modified, False otherwise.
+    Reindexes Azure Search or Chroma DB if CSV blobs were added, modified, or deleted.
+    Returns True if indexing was performed, False otherwise.
     """
+    import shutil
+
     # Load config from environment
     conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
     container_name = os.getenv("AZURE_STORAGE_CONTAINER")
@@ -38,7 +42,7 @@ def reindex_if_blob_changed():
     index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
     state_file = "file_state.json"
 
-    # Load previous state (hash + row count per file)
+    # Load old state
     old_state = {}
     if os.path.exists(state_file):
         try:
@@ -49,11 +53,9 @@ def reindex_if_blob_changed():
         except Exception as e:
             print(f"⚠️ Failed to load state file: {e}")
 
-    # Setup clients
+    # Set up Blob client
     blob_service = BlobServiceClient.from_connection_string(conn_str)
     container_client = blob_service.get_container_client(container_name)
-    index_client = SearchIndexClient(endpoint=search_endpoint, credential=AzureKeyCredential(search_key))
-    search_client = SearchClient(endpoint=search_endpoint, index_name=index_name, credential=AzureKeyCredential(search_key))
 
     # Get current blob state
     current_state = {}
@@ -70,58 +72,95 @@ def reindex_if_blob_changed():
     changed_blobs = [name for name in blobs if old_state.get(name, {}).get("content_hash") != current_state[name]["content_hash"]]
     deleted_blobs = [name for name in old_state if name not in current_state]
 
-    # Exit early if no changes
     if not changed_blobs and not deleted_blobs:
-        return False
+        return False  # nothing changed
 
-    # Create index if missing
-    if index_name not in [i.name for i in index_client.list_indexes()]:
-        index = SearchIndex(
-            name=index_name,
-            fields=[
-                SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-                SearchField(name="content", type=SearchFieldDataType.String, searchable=True)
-            ]
-        )
-        index_client.create_index(index)
+    # -------------------- Azure Indexing --------------------
+    if vector_db_type == "azure":
+        index_client = SearchIndexClient(endpoint=search_endpoint, credential=AzureKeyCredential(search_key))
+        search_client = SearchClient(endpoint=search_endpoint, index_name=index_name, credential=AzureKeyCredential(search_key))
 
-    # Delete documents from removed files
-    if deleted_blobs:
-        to_delete = []
-        for name in deleted_blobs:
-            encoded = base64.urlsafe_b64encode(name.encode()).decode().rstrip("=")
-            for i in range(old_state.get(name, {}).get("row_count", 0)):
-                to_delete.append({"id": f"{encoded}-{i}"})
-        if to_delete:
-            search_client.delete_documents(to_delete)
+        # Create index if missing
+        if index_name not in [i.name for i in index_client.list_indexes()]:
+            index = SearchIndex(
+                name=index_name,
+                fields=[
+                    SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                    SearchField(name="content", type=SearchFieldDataType.String, searchable=True)
+                ]
+            )
+            index_client.create_index(index)
 
-    # Reindex updated blobs
-    for blob_name in changed_blobs:
+        # Delete from removed blobs
+        if deleted_blobs:
+            to_delete = []
+            for name in deleted_blobs:
+                encoded = base64.urlsafe_b64encode(name.encode()).decode().rstrip("=")
+                for i in range(old_state.get(name, {}).get("row_count", 0)):
+                    to_delete.append({"id": f"{encoded}-{i}"})
+            if to_delete:
+                search_client.delete_documents(to_delete)
+
+        # Reindex changed blobs
+        for blob_name in changed_blobs:
+            try:
+                blob_data = container_client.download_blob(blob_name).readall()
+                df = pd.read_csv(io.BytesIO(blob_data))
+                if "content" not in df.columns:
+                    continue
+
+                encoded = base64.urlsafe_b64encode(blob_name.encode()).decode().rstrip("=")
+                docs = []
+                for i, row in df.iterrows():
+                    docs.append({
+                        "id": f"{encoded}-{i}",
+                        "content": str(row["content"]),
+                        "metadata": json.dumps({})
+                    })
+
+                if docs:
+                    search_client.delete_documents([{"id": d["id"]} for d in docs])
+                    search_client.upload_documents(docs)
+                    current_state[blob_name]["row_count"] = len(docs)
+
+            except Exception as e:
+                print(f"⚠️ Failed to reindex {blob_name}: {e}")
+
+    # -------------------- Chroma Indexing --------------------
+    elif vector_db_type == "chroma":
+        persist_dir = os.path.abspath("chroma_db")
+
+        if documents is None or embeddings is None:
+            raise ValueError("Chroma indexing requires documents and embeddings.")
+
+        # Clean up using Chroma API if DB exists
+        if os.path.exists(persist_dir):
+            try:
+                tmp_chroma = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
+                tmp_chroma.delete_collection()
+            except Exception as e:
+                print(f"⚠️ Warning: failed to delete existing Chroma collection: {e}")
+
+        # Make sure directory is recreated and writable
+        os.makedirs(persist_dir, exist_ok=True)
+        os.chmod(persist_dir, stat.S_IRWXU)
+
+        # Rebuild Chroma from scratch
         try:
-            blob_data = container_client.download_blob(blob_name).readall()
-            df = pd.read_csv(io.BytesIO(blob_data))
-            if "content" not in df.columns:
-                continue
-
-            encoded = base64.urlsafe_b64encode(blob_name.encode()).decode().rstrip("=")
-            docs = []
-            for i, row in df.iterrows():
-                docs.append({
-                    "id": f"{encoded}-{i}",
-                    "content": str(row["content"]),
-                    "metadata": json.dumps({})
-                })
-
-            if docs:
-                search_client.delete_documents([{"id": d["id"]} for d in docs])
-                search_client.upload_documents(docs)
-                current_state[blob_name]["row_count"] = len(docs)
-
+            chroma_store = Chroma.from_documents(
+                documents,
+                embedding=embeddings,
+                persist_directory=persist_dir
+            )
+            chroma_store.persist()
         except Exception as e:
-            print(f"⚠️ Failed to reindex {blob_name}: {e}")
+            raise RuntimeError(f"❌ Failed to rebuild Chroma DB: {e}")
 
     # Save new state
     with open(state_file, "w") as f:
         json.dump(current_state, f, indent=2)
 
     return True
+
+
+

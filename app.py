@@ -13,6 +13,7 @@ from langchain.schema import Document
 from langchain.chains import RetrievalQA
 from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
 from langchain_community.vectorstores.azuresearch import AzureSearch
+from langchain.vectorstores import Chroma
 from indexing_utils import reindex_if_blob_changed  # <-- your reindexing module
 
 # --- Load environment variables from .env file ---
@@ -46,12 +47,13 @@ with st.spinner("📂 Loading knowledge base from Blob Storage..."):
     try:
         raw_texts = load_documents_from_blob(os.getenv("AZURE_STORAGE_CONTAINER"))
         if not raw_texts:
-            st.error("❌ No valid 'content' columns found in any CSV files.")
-            st.stop()
+            st.warning("⚠️ No CSV files with a valid 'content' column found in the Blob container. Chatbot works without knowledge base!")
+            raw_texts = ["This is a dummy document because no data was found in Blob storage."]
         documents = [Document(page_content=text) for text in raw_texts]
     except Exception as e:
-        st.error(f"❌ Failed to load documents: {e}")
-        st.stop()
+        st.warning(f"⚠️ Failed to load documents from Blob Storage: {e}")
+        documents = [Document(page_content="This is a dummy document due to a loading error.")]
+
 
 # --- Set up Azure OpenAI Embeddings ---
 embeddings = AzureOpenAIEmbeddings(
@@ -62,23 +64,58 @@ embeddings = AzureOpenAIEmbeddings(
     api_version="2023-05-15"
 )
 
+
+
 # --- Check for changes in Blob Storage and reindex if needed ---
+#with st.spinner("🔍 Checking for new or removed CSVs in Azure Blob Storage..."):
+#    try:
+#        changed = reindex_if_blob_changed()
+#        if changed:
+#            st.success("✅ Index updated from new or changed CSV files.")
+#    except Exception as e:
+#        st.error(f"❌ Failed to check blob changes: {e}")
+
+
+# --- Check for changes in Blob Storage and reindex if needed ---
+vector_db_type = os.getenv("VECTOR_DB_TYPE", "azure").lower()
+
 with st.spinner("🔍 Checking for new or removed CSVs in Azure Blob Storage..."):
     try:
-        changed = reindex_if_blob_changed()
+        changed = reindex_if_blob_changed(
+            vector_db_type=vector_db_type,
+            documents=documents,
+            embeddings=embeddings
+        )
         if changed:
-            st.success("✅ Index updated from new or changed CSV files.")
+            st.success(f"✅ {vector_db_type.capitalize()} index updated from new or changed CSV files.")
     except Exception as e:
         st.error(f"❌ Failed to check blob changes: {e}")
 
-# --- Set up Azure Cognitive Search retriever ---
-azure_search = AzureSearch(
-    azure_search_endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
-    azure_search_key=os.getenv("AZURE_SEARCH_ADMIN_KEY"),
-    index_name=os.getenv("AZURE_SEARCH_INDEX_NAME"),
-    embedding_function=embeddings.embed_query
-)
-retriever = azure_search.as_retriever()
+
+
+#vector_db_type = os.getenv("VECTOR_DB_TYPE").lower()
+retriever = None
+
+if vector_db_type == "azure":
+    azure_search = AzureSearch(
+        azure_search_endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
+        azure_search_key=os.getenv("AZURE_SEARCH_ADMIN_KEY"),
+        index_name=os.getenv("AZURE_SEARCH_INDEX_NAME"),
+        embedding_function=embeddings.embed_query
+    )
+    retriever = azure_search.as_retriever()
+
+elif vector_db_type == "chroma":
+    # Reload after reindexing
+    persist_dir = os.path.abspath("chroma_db")
+    chroma_store = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
+    retriever = chroma_store.as_retriever()
+
+else:
+    st.error("❌ Unsupported VECTOR_DB_TYPE. Set 'azure' or 'chroma' in .env")
+    st.stop()
+
+
 
 # --- Set up Azure OpenAI chat model ---
 llm = AzureChatOpenAI(
