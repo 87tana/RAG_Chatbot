@@ -1,6 +1,8 @@
 # Adaptive Retrieval-Augmented Generation (RAG) Chatbot
 
-**Live Demo**: [azureragchatbotapp.azurewebsites.net](https://azureragchatbotapp.azurewebsites.net) ([Status](https://status.azure.com) - Demo availability may depend on Azure hosting)
+**Live Demo**: [azureragchatbotapp.azurewebsites.net](https://azureragchatbotapp.azurewebsites.net) 
+
+([Status](https://status.azure.com) - Demo availability may depend on Azure hosting)
 
 This repository contains a Streamlit-based application that uses Azure OpenAI and Azure Cognitive Search (or Chroma) to semantically ingest, index, and query text datasets (e.g., CSV files) stored in Azure Blob Storage, delivering context-rich, on-demand insights.
 
@@ -54,6 +56,7 @@ This repository contains a Streamlit-based application that uses Azure OpenAI an
 ## Installation
 
 git clone https://github.com/87tana/RAG_Chatbot.git
+
 cd RAG_Chatbot
 
 ## Install dependencies
@@ -63,14 +66,20 @@ pip install -r requirements.txt
 ## Set up environment variables in a .env file:
 
 AZURE_OPENAI_API_KEY=<your-key>
+
 AZURE_OPENAI_ENDPOINT=<your-endpoint>
+
 AZURE_SEARCH_KEY=<your-key>
+
 AZURE_SEARCH_ENDPOINT=<your-endpoint>
+
 AZURE_STORAGE_CONNECTION_STRING=<your-connection-string>
+
 VECTOR_DB_TYPE=<azure|chroma>
 
 ## Running the App : 
-- Start the Streamlit application:  "streamlit run app.py"
+
+- Start the Streamlit application: "streamlit run app.py"
 
 ## Usage
 
@@ -130,27 +139,7 @@ VECTOR_DB_TYPE=<azure|chroma>
 
 ## Docker:
 
-1. Create a Dockerfile:
+See the Dockerfile for container setup and deployment instructions.
 
-# Use official Python image
-FROM python:3.10
 
-# Set working directory
-WORKDIR /app
 
-# Copy your app files
-COPY . /app
-
-# Install dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# Streamlit port
-EXPOSE 8501
-
-# Run Streamlit
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.enableCORS=false"]
-
-2. Build and Push
-
-docker build -t rag-chatbot .
-docker push <your-registry>/rag-chatbot
