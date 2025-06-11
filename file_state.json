@@ -1,6 +1,10 @@
 {
-  "knowledge-1.csv": {
-    "content_hash": "691a2adc690f7f0cbcd041d1264e9b5b23a393bc58224cde7f39bca28667b758",
+  "data.csv": {
+    "content_hash": "1c2c74717f05ebab64fbc905eb17f176c35e15d63812c93537353fc0754ec78f",
+    "row_count": 0
+  },
+  "knowledge.csv": {
+    "content_hash": "630e8db2551c4e09adbdbd7f8953bc047721d2b030135be004b7a38a84c0d7d8",
     "row_count": 0
   }
 }
