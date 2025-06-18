@@ -6,6 +6,9 @@
 
 This repository contains a Streamlit-based application that uses Azure OpenAI and Azure Cognitive Search (or Chroma) to semantically ingest, index, and query text datasets (e.g., CSV files) stored in Azure Blob Storage, delivering context-rich, on-demand insights.
 
+[azure_rag_chatbot_demo.webm](https://github.com/user-attachments/assets/ef78d9e4-ad6d-4bee-81ab-fb8ff3a9aaae)
+
+
 ## Features:
 
 - Semantic Ingestion: Automatically load and deduplicate text entries from CSV files in Azure Blob Storage.
