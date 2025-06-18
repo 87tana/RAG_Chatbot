@@ -89,7 +89,7 @@ VECTOR_DB_TYPE=<azure|chroma>
 
     - If no CSV files are found, a dummy document is loaded to keep the chatbot functional.
 
-## Using Your Own Data
+## Using Your Own Data:
 
 - To test the RAG Chatbot with your own documents (for example, research papers or any private data):
 
@@ -99,7 +99,7 @@ VECTOR_DB_TYPE=<azure|chroma>
 
     - Run the App: Start the Streamlit app (streamlit run app.py) and navigate to the UI. Your uploaded documents will be ingested and indexed on launch.
 
-- Local Testing Tip:: Set VECTOR_DB_TYPE=chroma, place CSV files in a ./data folder, and modify ingestion code to read locally instead of from Blob Storage.
+- Local Testing Tip: Set VECTOR_DB_TYPE=chroma, place CSV files in a ./data folder, and modify ingestion code to read locally instead of from Blob Storage.
 
 ## How It Works:
 
@@ -115,7 +115,7 @@ VECTOR_DB_TYPE=<azure|chroma>
 
 - Display: Streamlit chat UI renders the conversation.
 
-## Error Handling
+## Error Handling: 
 
 - Missing CSV Files: Loads a dummy document to ensure functionality.
 
@@ -123,7 +123,7 @@ VECTOR_DB_TYPE=<azure|chroma>
 
 - Connection Issues: Retries Azure API calls with exponential backoff.
 
-## Performance Considerations
+## Performance Considerations:
 
 - CSV Size: Indexing large CSV files (>1GB) may increase processing time. Split large files for better performance.
 
@@ -131,7 +131,7 @@ VECTOR_DB_TYPE=<azure|chroma>
 
 - Scalability: Azure Cognitive Search is recommended for large datasets; Chroma suits smaller, local deployments.
 
-## Deployment
+## Deployment:
 
 - Azure App Service: Containerize with Docker or use Python runtime.
 
