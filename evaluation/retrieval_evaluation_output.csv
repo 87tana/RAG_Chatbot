@@ -1,0 +1,108 @@
+ID,Question,Retrieved Chunks
+1,What are the key issues with the x-ray bone fracture detection dataset?,"﻿How I Tried (and Struggled) to Teach YOLO to Spot Bone Fractures
+
+
+
+Tannaz Mostafid
+4 min read
+·
+Apr 24, 2025
+Lessons from a tiny‑box, highly imbalanced X‑ray dataset
+
+
+Sample images of the dataset with fracture annotations overlaid. Created by author.
+The Dataset That Looked Innocent
+A public bone
+---
+﻿Tumor Segmentation with U-Net and DeepLabv3+ : A Review
+In recent years, deep learning has transformed the field of medical imaging, significantly improving the accuracy of semantic segmentation methods. Among these advances are the U-Net architecture and the more recent Deeplabv3+ model, both of w
+---
+﻿Overview of VGG16, ResNet50, Xception and MobileNet Neural Networks
+
+
+Introduction
+Image classification is a crucial task in the field of computer vision, and the performance of neural architectures plays a significant role in achieving high accuracy and efficiency. In this essay, we introduced fou"
+2,What are the issues with the annotations in the bone fracture detection dataset?,"﻿How I Tried (and Struggled) to Teach YOLO to Spot Bone Fractures
+
+
+
+Tannaz Mostafid
+4 min read
+·
+Apr 24, 2025
+Lessons from a tiny‑box, highly imbalanced X‑ray dataset
+
+
+Sample images of the dataset with fracture annotations overlaid. Created by author.
+The Dataset That Looked Innocent
+A public bone
+---
+﻿Tumor Segmentation with U-Net and DeepLabv3+ : A Review
+In recent years, deep learning has transformed the field of medical imaging, significantly improving the accuracy of semantic segmentation methods. Among these advances are the U-Net architecture and the more recent Deeplabv3+ model, both of w
+---
+LangChain supports Azure as a backend for embeddings and LLMs."
+3,What was the impcat of training larger networks on the bone fracture detection dataset?,"﻿How I Tried (and Struggled) to Teach YOLO to Spot Bone Fractures
+
+
+
+Tannaz Mostafid
+4 min read
+·
+Apr 24, 2025
+Lessons from a tiny‑box, highly imbalanced X‑ray dataset
+
+
+Sample images of the dataset with fracture annotations overlaid. Created by author.
+The Dataset That Looked Innocent
+A public bone
+---
+﻿Tumor Segmentation with U-Net and DeepLabv3+ : A Review
+In recent years, deep learning has transformed the field of medical imaging, significantly improving the accuracy of semantic segmentation methods. Among these advances are the U-Net architecture and the more recent Deeplabv3+ model, both of w
+---
+LangChain supports Azure as a backend for embeddings and LLMs."
+4,What is the bottleneck for Yolo on bone fracture detcteion dataset?,"﻿How I Tried (and Struggled) to Teach YOLO to Spot Bone Fractures
+
+
+
+Tannaz Mostafid
+4 min read
+·
+Apr 24, 2025
+Lessons from a tiny‑box, highly imbalanced X‑ray dataset
+
+
+Sample images of the dataset with fracture annotations overlaid. Created by author.
+The Dataset That Looked Innocent
+A public bone
+---
+﻿Tumor Segmentation with U-Net and DeepLabv3+ : A Review
+In recent years, deep learning has transformed the field of medical imaging, significantly improving the accuracy of semantic segmentation methods. Among these advances are the U-Net architecture and the more recent Deeplabv3+ model, both of w
+---
+﻿Overview of VGG16, ResNet50, Xception and MobileNet Neural Networks
+
+
+Introduction
+Image classification is a crucial task in the field of computer vision, and the performance of neural architectures plays a significant role in achieving high accuracy and efficiency. In this essay, we introduced fou"
+5,What should I consider when training yolo on an x-ray bone fracture dataset?,"﻿How I Tried (and Struggled) to Teach YOLO to Spot Bone Fractures
+
+
+
+Tannaz Mostafid
+4 min read
+·
+Apr 24, 2025
+Lessons from a tiny‑box, highly imbalanced X‑ray dataset
+
+
+Sample images of the dataset with fracture annotations overlaid. Created by author.
+The Dataset That Looked Innocent
+A public bone
+---
+﻿Tumor Segmentation with U-Net and DeepLabv3+ : A Review
+In recent years, deep learning has transformed the field of medical imaging, significantly improving the accuracy of semantic segmentation methods. Among these advances are the U-Net architecture and the more recent Deeplabv3+ model, both of w
+---
+﻿Overview of VGG16, ResNet50, Xception and MobileNet Neural Networks
+
+
+Introduction
+Image classification is a crucial task in the field of computer vision, and the performance of neural architectures plays a significant role in achieving high accuracy and efficiency. In this essay, we introduced fou"

@@ -1,0 +1,47 @@
+﻿Tumor Segmentation with U-Net and DeepLabv3+ : A Review
+In recent years, deep learning has transformed the field of medical imaging, significantly improving the accuracy of semantic segmentation methods. Among these advances are the U-Net architecture and the more recent Deeplabv3+ model, both of which leverage the power of convolutional neural networks (CNNs) to excel at medical image segmentation. In this blog post, I’ll explore the cutting-edge features of U-Net and Deeplabv3+, go into their architectural details, and highlight the impressive results they achieved on benchmark datasets. Whether you’re a seasoned professional or new to the field, this review will provide valuable insights into these groundbreaking technologies.
+Introduction
+Segmentation in medical imaging involves identifying and delineating the boundaries of different tissues within the body. Specifically, in tumor segmentation, the goal is to accurately define the boundaries of tumors within MRI images. This process involves classifying each point in a 3D volume — referred to as voxels in 3D space and pixels in 2D space. I’ll discuss the 2D and 3D segmentation approaches in the next sections. High quality datasets are crucial for effective segmentation. Among the most prominent are the BraTS datasets (2013–2021), which are widely used for brain tumor segmentation due to their detailed MRI images and their role in research challenges. Other valuable resources include The Cancer Imaging Archive (TCIA) and BrainWeb, which also provide essential data for advancing segmentation tasks.
+Key Semantic Segmentation Methods
+Segmentation methods in medical imaging can be broadly classified into three categories: conventional methods, machine learning methods, and deep learning methods (Verma et al., 2024). Conventional methods include threshold-based, atlas-based, and region-based techniques. Machine learning methods include approaches such as clustering and classification. However, the current state-of-the-art segmentation methods for computer-aided diagnosis are deep learning-based methods, such as U-Net and DeepLabv3. In this blog, I’ll focus primarily on these advanced deep learning techniques. Before diving into these methods, it’s important to understand the basic representation of MRI data used for segmentation tasks.
+Segmentation Approaches for 2D and 3D MRI Data
+The choice between 2D and 3D segmentation depends on the application, resources, and the desired balance between accuracy and efficiency. For brain tumor segmentation, 2D approaches can be preferable with limited resources or when the tumor is mostly visible in a single slice.
+In the 2D approach, a 3D MRI volume is divided into multiple 2D slices, each processed by a segmentation model to generate a segmentation map. These segmented slices are then combined to reconstruct the 3D output volume. However, this method can lose important 3D context. For instance, a tumor present in one slice likely extends to adjacent slices, but the model processes each slice independently, missing this continuity.
+In the 3D approach, the entire MRI volume is ideally fed into the model to obtain a 3D segmentation map. Due to memory and computational constraints, the MRI volume is divided into smaller 3D subvolumes, each containing width, height, and depth information. These subvolumes are processed sequentially, and the segmented subvolumes are then aggregated to form the full volume segmentation map. Although this method captures more spatial context than the 2D approach, it may still miss some context between adjacent subvolumes. However, it provides a more complete 3D context, which improves segmentation accuracy.
+A crucial step in preparing MRI data for any task, including segmentation, is “image registration.” This process aligns the sequences accurately, ensuring that the segmentation model receives properly aligned input data for more precise results.
+
+
+Table 1: Differences between 2D and 3D MRI. Created by author.
+Segmentation Using Convolutional Neural Networks
+Specialized CNN architectures like U-Net and DeepLabv3+ have revolutionized image segmentation in medical imaging. These models tackle challenges like precise localization, robustness to variations, and managing limited and imbalanced datasets effectively.
+U-Net
+The U-Net architecture, introduced by Ronneberger et al. in 2015, is specifically designed for biomedical image segmentation and addresses the limitations of previous convolutional networks. Traditional models often require large annotated datasets and struggle with accurate localization, especially in biomedical tasks. U-Net overcomes these challenges by leveraging data augmentation and a novel architecture to achieve high performance with minimal training data.
+U-Net’s architecture includes a contraction path for context capture and a symmetric expansion path for precise localization. It uses repeated applications of 3x3 convolutions followed by ReLU activations and 2x2 max-pooling for downsampling. The expansion path includes upsampling and concatenation, with high-resolution features coming from the contraction path via skip connections, followed by additional convolutions. This U-shaped structure allows U-Net to combine context and localization for accurate segmentation.
+
+
+Figure 3: U-Net architecture. (Ronneberger, O. et al.)
+To address the limited availability of training data, U-Net employs data augmentation techniques such as elastic deformations. These techniques help the network learn robustness to the variations and deformations commonly found in biomedical images, improving its performance and generalizability.
+DeepLabv3+
+DeepLabv3+, developed by Chen et al., extends CNN capabilities for semantic image segmentation, particularly for brain tumor segmentation. It uses atrous (dilated) convolutions and atrous spatial pyramid pooling (ASPP) to capture multi-scale contextual information without losing resolution. This approach is critical for accurate segmentation of tumors that vary significantly in size and shape. By exploring variable loss functions, DeepLabv3+ optimizes training and improves segmentation accuracy. Its advanced architecture and flexibility in handling loss functions make it highly effective for medical imaging applications.
+
+
+Figure 2. The brief architecture of DeepLabv3+ based semantic segmentation.
+Key Components of DeepLabv3+
+Atrous Convolutions: Expands the receptive field without reducing spatial resolution, capturing more contextual information for precise segmentation.
+Atrous Spatial Pyramid Pooling (ASPP): Captures multi-scale information using:
+* One 1x1 convolution
+* Three 3x3 convolutions (dilation rates of 6, 12, and 18)
+* Global average pooling followed by 1x1 convolution and batch normalization
+Backbone Network: Uses a modified ResNet (typically ResNet-101) with atrous convolutions to control feature map resolution. The last few layers of this backbone employ atrous convolutions to control the feature map’s resolution, depending on the output stride (OS). For example:
+* OS=16: Block4 uses a dilation rate of 2
+* OS=8: Block3 and Block4 use dilation rates of 2 and 4
+Feature Map Up-sampling: Concatenates and processes feature maps through 1x1 convolutions, then bilinearly upsamples them to the original image size for final segmentation.
+Loss Functions in DeepLabv3+
+The study on DeepLabv3 for brain tumor segmentation investigated several loss functions to optimize performance:
+Cross-Entropy Loss: A standard loss function for classification tasks that measures the difference between predicted and true class probabilities.
+Dice Coefficient Loss: Focuses on improving overlap between predicted and true segmentation regions, particularly useful for handling class imbalances.
+Combined Loss Functions: Integrations of cross-entropy and Dice coefficient losses to leverage the strengths of both approaches.
+The research found that the Dice coefficient loss performed the best in capturing fine tumor boundaries and managing class imbalances. This underscores the importance of choosing appropriate loss functions tailored to the specific challenges of medical image segmentation, such as class imbalance and boundary precision.
+Conclusion
+U-Net represented a significant advance over the sliding window approach by allowing end-to-end training from very few images. Its architecture outperformed previous methods, including the sliding window convolutional network, especially in tasks such as the ISBI challenge for segmenting neural structures in electron microscope stacks. A key advantage of U-Net is its ability to leverage context from the entire image through its encoder-decoder structure, resulting in more accurate and efficient segmentation.
+In the meantime, however, more advanced models such as DeepLabv3+ have emerged that offer further improvements.

@@ -1,0 +1,68 @@
+﻿How I Tried (and Struggled) to Teach YOLO to Spot Bone Fractures
+
+
+
+Tannaz Mostafid
+4 min read
+·
+Apr 24, 2025
+Lessons from a tiny‑box, highly imbalanced X‑ray dataset
+
+
+Sample images of the dataset with fracture annotations overlaid. Created by author.
+The Dataset That Looked Innocent
+A public bone fracture detection dataset with ~5.5k X-ray images landed on my desk. Sounds decent, right?
+Not really.
+* Most of the images are healthy — in the training split, only 1 in 4 has a fracture.
+* Validation is the opposite: almost 8 out of 10 images show a fracture.
+* Enriched by offline augmentation. The true pool of original X-rays is much smaller; many samples are flips or rotations of the same image, so the true diversity is limited.
+* The box sizes tend to be tiny, and the val/test fractures are even smaller than the training fractures. Fractures are annotated with bounding boxes, often covering only a few percent of the image.
+In other words, the network faces a lopsided classroom: it spends most of its time looking at normal bones in training, then is tested on a set with tiny fracture boxes. Quite a challenge!
+
+
+Object count statistics. Created by author.
+
+
+Bounding box size statistics. Created by author.
+First Runs, First Reality Check
+I started with Ultralytics’ YOLOv11-nano on the full training set, where only 25% of the images contain fractures. It scored mAP@50 ≈ 66%. To reduce the “all-background” bias, I reran the training on positives only; the loose-box accuracy (mAP@50) increased to 69%, showing that less background images helps.
+ But the tight-box metric (mAP@50–95) remained stuck at 26%, leaving the core problem of detecting tiny, varied fracture boxes unsolved.
+
+
+
+
+Curious if “bigger is better,” I climbed the model‑size ladder:
+
+
+All models have been trained for 80 epochs. Created by author.
+Larger networks didn’t really help. Their mAP@50 bounced around by a point or two, while the strict mAP@50–95 never moved. In practice, the Nano still came out on top — capacity alone is not the solution.
+
+
+
+
+To see if “more data variation” helps, I increased the on-the-fly augmentation with larger rotations, flips, and scaling. Both mAP scores dropped, as all the extra synthetic variety just confused the model.
+Too much synthetic variety, not enough real signal.
+I also tried multi-scale training and a gentler learning rate schedule; the loss curves smoothed out, but the validation/test scores barely changed. In short, no matter what tricks I added, the numbers didn’t change.
+
+
+
+
+YOLOv11 lets you adjust three loss weights: box, cls, and dfl (the one that should sharpen box edges). The defaults are 7.5 / 0.5 / 1.5. I thought that “more dfl might help with small fractures”, so I increased it to 2.5. The training curves looked smoother, but both mAP values slipped a bit.
+If the model can’t see the fine details, fiddling with loss weights won’t magically make it accurate.
+
+
+
+
+Why Tiny Boxes Still Trip YOLOv11?
+
+
+With fractures this small, the bottleneck is spatial resolution and center point assignment, not raw network capacity — capacity alone is not the solution.
+What I’ll Try Next
+
+
+No synthetic cracks and no high-res patches this round — the goal is to squeeze sharper boxes from the data I already have by giving the model finer feature maps, smarter sampling, and better interpretability. If any of these ideas finally nudge that tight-box mAP upward, I’ll share the results so others can skip the dead ends.
+Takeaways
+* Check your splits first. If validation does not look like training, your metrics are lying.
+* Size matters. Small objects require higher resolution, custom detection heads, or both.
+* Loss weights help, but they won’t save you if the detector can’t physically resolve the object.
+* Medical images ≠ street photos. Expect data hunger, imbalance, and tiny targets.
