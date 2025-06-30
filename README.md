@@ -21,20 +21,6 @@ This repository contains a Streamlit-based application that uses Azure OpenAI an
 
 - Flexible Vector Store: Switch between Azure Cognitive Search and Chroma via a single environment variable.
 
-## Architecture: system's components, their interactions, and data flow
-
-   - Data Source: CSV files residing in an Azure Blob Storage container, each containing a content column.
-
-   - Indexing Module: indexing_utils.py monitors blob storage, computes file hashes, and updates the vector index.
-
-   - Embedding Service: Azure OpenAI Embeddings generate semantic vectors for ingested text.
-
-   - Vector Store: Azure Cognitive Search or Chroma serves as the retrieval backend.
-
-   - QA Chain: LangChain’s RetrievalQA composes retrieval and Azure Chat OpenAI to answer queries.
-
-   - Streamlit UI: app.py stitches everything into an interactive chat experience.
-
 ## Vector Store Options 
 
 - azure: Uses Azure Cognitive Search with semantic search capabilities.
